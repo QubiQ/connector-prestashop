@@ -12,7 +12,6 @@ from ...components.importer import import_batch, import_record
 from ...components.auto_matching_importer import AutoMatchingImporter
 from ...components.backend_adapter import GenericAdapter, api_handle_errors
 from ...components.version_key import VersionKey
-from ...backend import prestashop
 
 from ..product_template.importer import import_inventory
 from ..product_supplierinfo.importer import import_suppliers

@@ -3,6 +3,7 @@
 # Copyright 2011-2013 Akretion
 # Copyright 2015 AvanzOSC
 # Copyright 2015-2016 Tecnativa
+# Copyright 2018 QubiQ
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 {
@@ -31,7 +32,8 @@
             "bs4",
         ],
     },
-    "author": "Akretion,"
+    "author": "QubiQ,"
+              "Akretion,"
               "Camptocamp,"
               "AvanzOSC,"
               "Tecnativa,"

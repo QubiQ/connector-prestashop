@@ -3,20 +3,16 @@
 
 from odoo import _, fields
 from odoo.addons.queue_job.job import job
-from odoo.addons.connector.connector import ConnectorUnit
+from odoo.addons.component.core import Component
 from odoo.addons.queue_job.exception import FailedJobError, NothingToDoJob
-from odoo.addons.connector.unit.mapper import ImportMapper, mapping
+from odoo.addons.connector.components.mapper import mapping
 from odoo.addons.connector_ecommerce.unit.sale_order_onchange import (
     SaleOrderOnChange,
 )
-from ...components.backend_adapter import GenericAdapter
 from ...components.importer import (
-    PrestashopImporter,
     import_batch,
-    DelayedBatchImporter,
 )
 from ...components.exception import OrderImportRuleRetry
-from ...backend import prestashop
 
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -29,14 +25,16 @@ except:
     _logger.debug('Cannot import from `prestapyt`')
 
 
-@prestashop
 class PrestaShopSaleOrderOnChange(SaleOrderOnChange):
     _model_name = 'prestashop.sale.order'
 
 
-@prestashop
-class SaleImportRule(ConnectorUnit):
-    _model_name = ['prestashop.sale.order']
+class SaleImportRule(Component):
+    _name = 'prestashop.sale.import.rule'
+    _inherit = 'base.prestashop.connector'
+
+    _apply_on = 'prestashop.sale.order'
+    _usage = 'sale.import.rule'
 
     def _rule_always(self, record, mode):
         """ Always import the order """
@@ -55,9 +53,9 @@ class SaleImportRule(ConnectorUnit):
                                        'The import will be retried later.')
 
     def _get_paid_amount(self, record):
-        payment_adapter = self.unit_for(
-            GenericAdapter,
-            '__not_exist_prestashop.payment'
+        payment_adapter = self.component(
+            usage='backend.adapter',
+            model_name='__not_exist_prestashop.payment',
         )
         payment_ids = payment_adapter.search({
             'filter[order_reference]': record['reference']
@@ -144,9 +142,10 @@ class SaleImportRule(ConnectorUnit):
                 ) % record['id'])
 
 
-@prestashop
-class SaleOrderMapper(ImportMapper):
-    _model_name = 'prestashop.sale.order'
+class SaleOrderMapper(Component):
+    _name = 'prestashop.sale.order.mapper'
+    _inherit = 'prestashop.import.mapper'
+    _apply_on = 'prestashop.sale.order'
 
     direct = [
         ('date_add', 'date_order'),
@@ -168,8 +167,10 @@ class SaleOrderMapper(ImportMapper):
     def _get_discounts_lines(self, record):
         if record['total_discounts'] == '0.00':
             return []
-        adapter = self.unit_for(
-            GenericAdapter, 'prestashop.sale.order.line.discount')
+        adapter = self.component(
+            usage='backend.adapter',
+            model_name='prestashop.sale.order.line.discount',
+        )
         discount_ids = adapter.search({'filter[id_order]': record['id']})
         discount_mappers = []
         for discount_id in discount_ids:
@@ -193,7 +194,10 @@ class SaleOrderMapper(ImportMapper):
 
         children = []
         for child_record in child_records:
-            adapter = self.unit_for(GenericAdapter, model_name)
+            adapter = self.component(
+                usage='backend.adapter',
+                model_name=model_name,
+            )
             detail_record = adapter.read(child_record['id'])
 
             mapper = self._get_map_child_unit(model_name)
@@ -237,7 +241,8 @@ class SaleOrderMapper(ImportMapper):
     @mapping
     def partner_shipping_id(self, record):
         binder = self.binder_for('prestashop.address')
-        shipping = binder.to_internal(record['id_address_delivery'], unwrap=True)
+        shipping = binder.to_internal(
+            record['id_address_delivery'], unwrap=True)
         return {'partner_shipping_id': shipping.id}
 
     @mapping
@@ -276,13 +281,16 @@ class SaleOrderMapper(ImportMapper):
         return {'total_amount_tax': tax}
 
     def finalize(self, map_record, values):
-        onchange = self.unit_for(SaleOrderOnChange)
+        onchange = self.component(
+            usage='ecommerce.onchange.manager.sale.order',
+        )
         return onchange.play(values, values['prestashop_order_line_ids'])
 
 
-@prestashop
-class SaleOrderImporter(PrestashopImporter):
-    _model_name = ['prestashop.sale.order']
+class SaleOrderImporter(Component):
+    _name = 'prestashop.sale.order.importer'
+    _inherit = 'prestashop.importer'
+    _apply_on = 'prestashop.sale.order'
 
     def __init__(self, environment):
         """
@@ -357,7 +365,9 @@ class SaleOrderImporter(PrestashopImporter):
         """ Return True if the import can be skipped """
         if self._get_binding():
             return True
-        rules = self.unit_for(SaleImportRule)
+        rules = self.component(
+            usage='sale.import.rule',
+        )
         try:
             return rules.check(self.prestashop_record)
         except NothingToDoJob as err:
@@ -367,14 +377,16 @@ class SaleOrderImporter(PrestashopImporter):
             return err.message
 
 
-@prestashop
-class SaleOrderBatchImporter(DelayedBatchImporter):
-    _model_name = 'prestashop.sale.order'
+class SaleOrderBatchImporter(Component):
+    _name = 'prestashop.sale.order.batch.importer'
+    _inherit = 'prestashop.delayed.batch.importer'
+    _apply_on = 'prestashop.sale.order'
 
 
-@prestashop
-class SaleOrderLineMapper(ImportMapper):
-    _model_name = 'prestashop.sale.order.line'
+class SaleOrderLineMapper(Component):
+    _name = 'prestashop.saler.order.line.mapper'
+    _inherit = 'prestashop.import.mapper'
+    _apply_on = 'prestashop.sale.order.line'
 
     direct = [
         ('product_name', 'name'),
@@ -448,9 +460,10 @@ class SaleOrderLineMapper(ImportMapper):
         return {'backend_id': self.backend_record.id}
 
 
-@prestashop
-class SaleOrderLineDiscountMapper(ImportMapper):
-    _model_name = 'prestashop.sale.order.line.discount'
+class SaleOrderLineDiscountMapper(Component):
+    _name = 'prestashop.saler.order.line.discount.mapper'
+    _inherit = 'prestashop.import.mapper'
+    _apply_on = 'prestashop.sale.order.line.discount'
 
     direct = []
 

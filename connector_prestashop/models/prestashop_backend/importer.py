@@ -2,18 +2,16 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
 from odoo import _
-from odoo.addons.connector.unit.mapper import ImportMapper, mapping
-from ...components.importer import PrestashopImporter, DirectBatchImporter
-from ...backend import prestashop
+from odoo.addons.connector.components.mapper import mapping
 from odoo.addons.component.core import Component
 
 
 class ShopGroupImportMapper(Component):
     _name = 'prestashop.shop.group.mapper'
     _inherit = 'prestashop.import.mapper'
-    _apply_on = 'prestashop.shop.group'
-
-    _model_name = 'prestashop.shop.group'
+    _apply_on = [
+        'prestashop.shop.group',
+    ]
 
     direct = [('name', 'name')]
 
@@ -50,14 +48,14 @@ class ShopGroupImportMapper(Component):
 class ShopGroupImporter(Component):
     _name = 'prestashop.shop.group.importer'
     _inherit = 'prestashop.importer'
-    _apply_on = 'prestashop.shop.group'
-
-    _model_name = 'prestashop.shop.group'
+    _apply_on = [
+        'prestashop.shop.group',
+    ]
 
 
 class ShopGroupBatchImporter(Component):
     _name = 'prestashop.shop.group.batch.importer'
     _inherit = 'prestashop.direct.batch.importer'
-    _apply_on = 'prestashop.shop.group'
-
-    _model_name = 'prestashop.shop.group'
+    _apply_on = [
+        'prestashop.shop.group',
+    ]

@@ -7,8 +7,8 @@ from odoo import api, fields, models
 from odoo.addons import decimal_precision as dp
 
 from odoo.addons.queue_job.job import job
-from ...components.backend_adapter import GenericAdapter
-from ...backend import prestashop
+from odoo.addons.component.core import Component
+
 from exporter import CombinationInventoryExporter
 
 
@@ -266,15 +266,19 @@ class PrestashopProductCombinationOptionValue(models.Model):
         comodel_name='prestashop.product.combination.option')
 
 
-@prestashop
-class ProductCombinationAdapter(GenericAdapter):
+class ProductCombinationAdapter(Component):
+    _name = 'prestashop.product.combination.adapter'
+    _inherit = 'prestashop.adapter'
     _model_name = 'prestashop.product.combination'
+    _apply_on = 'prestashop.product.combination'
     _prestashop_model = 'combinations'
     _export_node_name = 'combination'
 
 
-@prestashop
-class ProductCombinationOptionAdapter(GenericAdapter):
+class ProductCombinationOptionAdapter(Component):
+    _name = 'prestashop.product.combination.option.fadapter'
+    _inherit = 'prestashop.adapter'
     _model_name = 'prestashop.product.combination.option'
+    _apply_on = 'prestashop.product.combination.option'
     _prestashop_model = 'product_options'
     _export_node_name = 'product_options'

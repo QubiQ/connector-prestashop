@@ -170,6 +170,7 @@ class GenericAdapter(AbstractComponent):
     # _export_node_name="manufacturers"
     # _export_node_name_res = "manufacturer"
     _export_node_name_res = ''
+    _usage = 'backend.adapter'
 
     def search(self, filters=None):
         """ Search records according to some criterias

@@ -414,7 +414,7 @@ class TranslatableRecordImporter(AbstractComponent):
 
     def find_each_language(self, record):
         languages = {}
-        for field in self._translatable_fields[self.connector_env.model_name]:
+        for field in self._translatable_fields[self._apply_on]:
             # TODO FIXME in prestapyt
             if not isinstance(record[field]['language'], list):
                 record[field]['language'] = [record[field]['language']]
@@ -449,7 +449,7 @@ class TranslatableRecordImporter(AbstractComponent):
                 _('No language mapping defined. '
                   'Run "Synchronize base data".')
             )
-        model_name = self.connector_env.model_name
+        model_name = self._apply_on
         for language_id, language_code in languages.iteritems():
             split_record[language_code] = record.copy()
         _fields = self._translatable_fields[model_name]

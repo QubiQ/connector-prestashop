@@ -3,9 +3,7 @@
 
 from odoo import models, fields
 
-from odoo.addons.queue_job.job import job
-from ...components.backend_adapter import GenericAdapter
-from ...backend import prestashop
+from odoo.addons.component.core import Component
 from ...components.importer import import_batch
 
 
@@ -88,7 +86,7 @@ class PrestashopResPartner(models.Model):
     birthday = fields.Date(string='Birthday')
 
     def import_customers_since(
-        self, backend_record=None, since_date=None, **kwargs):
+            self, backend_record=None, since_date=None, **kwargs):
         """ Prepare the import of partners modified on PrestaShop """
         filters = None
         if since_date:
@@ -158,13 +156,17 @@ class PrestashopAddress(models.Model):
     vat_number = fields.Char('PrestaShop VAT')
 
 
-@prestashop
-class PartnerAdapter(GenericAdapter):
+class PartnerAdapter(Component):
+    _name = 'prestashop.partner.adapter'
+    _inherit = 'prestashop.adapter'
     _model_name = 'prestashop.res.partner'
+    _apply_on = 'prestashop.res.partner'
     _prestashop_model = 'customers'
 
 
-@prestashop
-class PartnerAddressAdapter(GenericAdapter):
+class PartnerAddressAdapter(Component):
+    _name = 'prestashop.address.adapter'
+    _inherit = 'prestashop.adapter'
     _model_name = 'prestashop.address'
+    _apply_on = 'prestashop.address'
     _prestashop_model = 'addresses'

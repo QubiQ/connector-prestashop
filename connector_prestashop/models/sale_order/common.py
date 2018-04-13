@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-import openerp.addons.decimal_precision as dp
+import odoo.addons.decimal_precision as dp
+from odoo.addons.component.core import Component
 
 from odoo import models, fields, api
-
-from ...components.backend_adapter import GenericAdapter
-from ...backend import prestashop
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -24,7 +22,7 @@ class SaleOrder(models.Model):
 
 class PrestashopSaleOrder(models.Model):
     _name = 'prestashop.sale.order'
-    _inherit = 'prestashop.binding.odoo'
+    _inherit = 'prestashop.binding'
     _inherits = {'sale.order': 'odoo_id'}
 
     odoo_id = fields.Many2one(
@@ -85,7 +83,7 @@ class SaleOrderLine(models.Model):
 
 class PrestashopSaleOrderLine(models.Model):
     _name = 'prestashop.sale.order.line'
-    _inherit = 'prestashop.binding.odoo'
+    _inherit = 'prestashop.binding'
     _inherits = {'sale.order.line': 'odoo_id'}
 
     odoo_id = fields.Many2one(
@@ -114,7 +112,7 @@ class PrestashopSaleOrderLine(models.Model):
 
 class PrestashopSaleOrderLineDiscount(models.Model):
     _name = 'prestashop.sale.order.line.discount'
-    _inherit = 'prestashop.binding.odoo'
+    _inherit = 'prestashop.binding'
     _inherits = {'sale.order.line': 'odoo_id'}
 
     odoo_id = fields.Many2one(
@@ -141,9 +139,11 @@ class PrestashopSaleOrderLineDiscount(models.Model):
         return super(PrestashopSaleOrderLineDiscount, self).create(vals)
 
 
-@prestashop
-class SaleOrderAdapter(GenericAdapter):
+class SaleOrderAdapter(Component):
+    _name = 'prestashop.sale.order.adapter'
+    _inherit = 'prestashop.adapter'
     _model_name = 'prestashop.sale.order'
+    _apply_on = 'prestashop.sale.order'
     _prestashop_model = 'orders'
     _export_node_name = 'order'
 
@@ -151,19 +151,26 @@ class SaleOrderAdapter(GenericAdapter):
         return self.client.add('order_histories', datas)
 
 
-@prestashop
-class SaleOrderLineAdapter(GenericAdapter):
+class SaleOrderLineAdapter(Component):
+    _name = 'prestashop.sale.order.line.adapter'
+    _inherit = 'prestashop.adapter'
     _model_name = 'prestashop.sale.order.line'
+    _apply_on = 'prestashop.sale.order.line'
+
     _prestashop_model = 'order_details'
 
 
-@prestashop
-class OrderPaymentAdapter(GenericAdapter):
+class OrderPaymentAdapter(Component):
+    _name = 'prestashop.order.payment.adapter'
+    _inherit = 'prestashop.adapter'
     _model_name = '__not_exist_prestashop.payment'
+    _apply_on = '__not_exist_prestashop.payment'
     _prestashop_model = 'order_payments'
 
 
-@prestashop
-class OrderDiscountAdapter(GenericAdapter):
+class OrderDiscountAdapter(Component):
+    _name = 'prestashop.order.discount.adapter'
+    _inherit = 'prestashop.adapter'
     _model_name = 'prestashop.sale.order.line.discount'
+    _apply_on = 'prestashop.sale.order.line.discount'
     _prestashop_model = 'order_discounts'

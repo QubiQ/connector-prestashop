@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import models, fields
-from ...components.backend_adapter import GenericAdapter
-from ...backend import prestashop
+from odoo import fields, models
+from odoo.addons.component.core import Component
 
 
 class SaleOrderState(models.Model):
@@ -70,7 +69,10 @@ class SaleOrderStateList(models.Model):
     )
 
 
-@prestashop
-class SaleOrderStateAdapter(GenericAdapter):
+class SaleOrderStateAdapter(Component):
+    _name = 'prestashop.sale.order.state.adapter'
+    _inherit = 'prestashop.adapter'
+    _apply_on = 'prestashop.sale.order.state'
+
     _model_name = 'prestashop.sale.order.state'
     _prestashop_model = 'order_states'

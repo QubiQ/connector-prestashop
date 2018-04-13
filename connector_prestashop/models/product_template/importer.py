@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo import _, models, fields
+from odoo import _, models
 from odoo.addons.queue_job.job import job
-from odoo.addons.connector.unit.mapper import (
-    mapping,
-    only_create,
-    ImportMapper
+from odoo.addons.component.core import Component
+from odoo.addons.connector.components.mapper import (
+    mapping, only_create, external_to_m2o
 )
 
 from ...components.importer import (
@@ -17,7 +16,6 @@ from ...components.importer import (
     PrestashopBaseImporter,
     TranslatableRecordImporter,
 )
-from odoo.addons.connector.unit.mapper import external_to_m2o
 from ...components.backend_adapter import GenericAdapter
 from ...backend import prestashop
 from ..product_image.importer import (
@@ -45,9 +43,10 @@ except ImportError:
     _logger.debug('Cannot import from `prestapyt`')
 
 
-@prestashop
-class TemplateMapper(ImportMapper):
-    _model_name = 'prestashop.product.template'
+class TemplateMapper(Component):
+    _name = 'prestashop.product.template.mapper'
+    _inherit = 'prestashop.import.mapper'
+    _apply_on = 'prestashop.product.template'
 
     direct = [
         ('weight', 'weight'),
@@ -278,11 +277,12 @@ class TemplateMapper(ImportMapper):
         return mapper.map_record(record).values(**self.options)
 
 
-@prestashop
-class FeaturesProductImportMapper(ImportMapper):
+class FeaturesProductImportMapper(Component):
     # To extend in connector_prestashop_feature module. In this way we
     # dependencies on other modules like product_custom_info
-    _model_name = 'prestashop.product.template'
+    _name = 'prestashop.features.product.mapper'
+    _inherit = 'prestashop.import.mapper'
+    _apply_on = 'prestashop.product.template'
 
     @mapping
     def extras_features(self, record):
@@ -299,11 +299,12 @@ class ManufacturerProductDependency(PrestashopBaseImporter):
         return
 
 
-@prestashop
-class ManufacturerProductImportMapper(ImportMapper):
+class ManufacturerProductImportMapper(Component):
     # To extend in connector_prestashop_manufacturer module. In this way we
     # dependencies on other modules like product_manufacturer
-    _model_name = 'prestashop.product.template'
+    _name = 'prestashop.manufacturer.product.import.mapper'
+    _inherit = 'prestashop.import.mapper'
+    _apply_on = 'prestashop.product.template'
 
     @mapping
     def extras_manufacturer(self, record):
@@ -352,9 +353,10 @@ class ProductInventoryBatchImporter(DelayedBatchImporter):
         )
 
 
-@prestashop
-class ProductInventoryImporter(PrestashopImporter):
-    _model_name = ['_import_stock_available']
+class ProductInventoryImporter(Component):
+    _name = 'prestashop.product.inventory.importer'
+    _inherit = 'prestashop.exporter'
+    _apply_on = ['_import_stock_available']
 
     def _get_quantity(self, record):
         filters = {

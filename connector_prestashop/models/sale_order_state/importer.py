@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html)
 
-from odoo.addons.connector.unit.mapper import ImportMapper, mapping
-from ...components.importer import TranslatableRecordImporter, DirectBatchImporter
-from ...backend import prestashop
+from odoo.addons.connector.components.mapper import mapping
+from odoo.addons.component.core import Component
 
 
-@prestashop
-class SaleOrderStateMapper(ImportMapper):
+class SaleOrderStateMapper(Component):
+    _name = 'prestashop.sale.order.state.import.mapper'
+    _inherit = 'prestashop.import.mapper'
+    _apply_on = 'prestashop.sale.order.state'
+
     _model_name = 'prestashop.sale.order.state'
 
     direct = [
@@ -23,8 +25,11 @@ class SaleOrderStateMapper(ImportMapper):
         return {'company_id': self.backend_record.company_id.id}
 
 
-@prestashop
-class SaleOrderStateImporter(TranslatableRecordImporter):
+class SaleOrderStateImporter(Component):
+    _name = 'prestashop.sale.order.state.importer'
+    _inherit = 'translatable.record.importer'
+    _apply_on = 'prestashop.sale.order.state'
+
     """ Import one translatable record """
     _model_name = [
         'prestashop.sale.order.state',
@@ -37,6 +42,9 @@ class SaleOrderStateImporter(TranslatableRecordImporter):
     }
 
 
-@prestashop
-class SaleOrderStateBatchImporter(DirectBatchImporter):
+class SaleOrderStateBatchImporter(Component):
+    _name = 'prestashop.sale.order.state.direct.batch.importer'
+    _inherit = 'prestashop.direct.batch.importer'
+    _apply_on = 'prestashop.sale.order.state'
+
     _model_name = 'prestashop.sale.order.state'
